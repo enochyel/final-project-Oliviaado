@@ -1,16 +1,13 @@
 ---
-title: "My Final Project Template"
-author: Your name here
+title: "Land Use/Land Cover Change Detection in Southwest Minnesota"
+author: Olivia Adomabea
 subtitle: Subtitle here if desired
-date: today
+date: 11/22/2024
 date-format: long
 ---
 
 # Introduction
-
-\[\~ 200 words\]
-
-Clearly stated background and questions / hypotheses / problems being addressed. Sets up the analysis in an interesting and compelling way. Include figures if you like.
+This project seeks to detect land cover changes in southern Minnesota. Understanding the dynamics of environmental transformations caused by natural processes and human activities requires detecting land cover change. Accurate detection helps inform sustainable land-use policies and mitigate environmental impacts, such as biodiversity decline and climate change. Land cover change detection is a critical tool for understanding the complex dynamics of land use and its impacts on the environment, society, and economy. As human activities, such as urban expansion, agricultural intensification, and deforestation, continue to alter the landscape, it becomes increasingly important to monitor and assess these changes over time. studying land cover changes is vital for understanding environmental, social, and economic systems. It informs policies, promotes sustainable development, enhances disaster resilience, and helps manage natural resources more effectively.
 
 # Materials and methods
 
