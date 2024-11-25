@@ -25,11 +25,6 @@ Code: The code associated with the project is well organized and easy to follow.
 
 Data: The underlying data are publicly accessible via the web and downloaded/accessed within the Rmd script. 
 ---
-title: "Project Title: Land Use/Land Cover Change Detection in Southwest Minnesota"
-author: "Olivia Adomabea"
-format: html
-editor: visual
----
 
 ```{r}
 # load packages
