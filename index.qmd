@@ -1,5 +1,5 @@
 ---
-title: "Land Use/Land Cover Change Detection in Southwest Minnesota"
+title: "Land Cover Change Detection in Southwest Minnesota"
 author: Olivia Adomabea
 subtitle: Subtitle here if desired
 date: 11/22/2024
