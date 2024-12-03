@@ -1,120 +1,412 @@
 ---
-title: "My Final Project Template"
-author: Your name here
-subtitle: Subtitle here if desired
+title: "Predicting Diabetes Using Logistic Regression in R"
+author: Faithwin Gbadamosi
+subtitle: Final Project for Spatial Data Science
 date: today
 date-format: long
+format: html
 ---
 
 # Introduction
 
-\[\~ 200 words\]
+The disease “Diabetes Mellitus” is one of the most common critical diseases in the world. According to the World Health Organization (WHO), approximately 422 million people worldwide currently live with diabetes, with the majority residing in low- and middle-income countries (World Health Organization, 2023). The disease is characterized by elevated levels of blood glucose (or blood sugar), which leads over time to serious damage to the heart, blood vessels, eyes, kidneys and nerves.
 
-Clearly stated background and questions / hypotheses / problems being addressed. Sets up the analysis in an interesting and compelling way. Include figures if you like.
+For people at risk of diabetes, healthcare professionals have stressed the value of routine tests, emphasizing the necessity of early detection and intervention (Pranto eta al., 2020). In addition to diabetes care, prevention is essential. Prediction of diabetes from the onset can help healthcare providers take early preventive measures (Talukder et al., 2024).
+
+This project aims to build a predictive model for diabetes using readily available patient data and key variables, such as pregnancies, glucose levels, BMI, and genetic factors. In addition, I will create visual summaries to communicate the insights and patterns identified in the data. The major objectives include:
+
+1.  Collecting and cleaning the diabetes dataset with relevant health variables.
+
+2.  Applying machine learning algorithm (logistic regression) to predict diabetes cases.
+
+3.  Creating visual summaries to show the relationships between key variables.
 
 # Materials and methods
 
-\[\~ 200 words\]
+### **The Data**
 
-Narrative: Clear narrative description of the data sources and methods. Includes data from at least two sources that were integrated / merged in R.
+The dataset used in this project was found in a study by Chou et al., (2023). The outpatient examination data of a Taipei Municipal medical center was taken as the patient population and 15,000 women aged between 20 and 80 were selected as the samples. The women were patients who had gone to the hospital between 2018 and 2020 and between 2021 and 2022 and may or may not have been diagnosed with diabetes.
 
-Code: The code associated with the project is well organized and easy to follow. Demonstrates mastery of R graphics and functions.
+The dataset contains the following variables:
 
-Data: The underlying data are publicly accessible via the web and downloaded/accessed within the Rmd script. If you want to use your own data, you must make it available on a website (e.g. Figshare) so that others are able to re-run your code.
+1\. Pregnancies: Number of times pregnant
 
-You can do bullets like this:
+2\. PlasmaGlucose: two hours following an oral glucose tolerance test, plasma glucose concentration
 
--   The first most important thing
--   The second most important thing
--   The third most important thing
+3\. DiastolicBloodPressure: Diastolic blood pressure (mm Hg)
 
-You can do numbers like this:
+4\. TricepsThickness: Triceps skin fold thickness (mm)
 
-1.  The first most important thing
-2.  The second most important thing
-3.  The third most important thing
+5\. SerumInsulin: 2-Hour serum insulin (mu U/ml)
 
-See <http://rmarkdown.rstudio.com/> for all the amazing things you can do.
+6\. BMI: Body mass index (weight in kg/(height in m)\^2)
 
-Here's my first code chunk.
+7\. DiabetesPedigree: a numerical estimate of an individual's genetic risk for developing diabetes based on family history. A higher score indicates a greater likelihood of developing the condition.
 
-```{r}
-x=3+4
-```
+8\. Age: Age (years)
 
-Refer to output in your narrative like this: x=`r x` .
+9\. Diabetic Outcome: Class variable (0 or 1) with the class value 1 representing those who tested positive for diabetes.
 
-Load any required packages in a code chunk (you may need to install some packages):
+Dataset can be found here: (<https://drive.google.com/file/d/1eAplOYO-k7ZYHj4uHAY1tEr8VTeaxS6u/view?usp=sharing>).
 
-```{r, message=F, warning=F}
+### Required Steps to Build Model
+
+1.  Load necessary packages
+
+2.  Load and explore the dataset
+
+3.  Data visualization and exploratory analysis
+
+4.  Preprocess data and Train model
+
+5.  Evaluate model
+
+6.  Make prediction with case study
+
+7.  ROC Curve
+
+### Load Required Packages
+
+Load necessary r packages to aid analysis.
+
+```{r, message=F, warning=FALSE, results=FALSE}
+#install.packages("corrplot")
+#install.packages("caret")
+#install.packages("kableExtra")
+ #install.packages("tinytex")
+#install.packages("DT")
+#install.packages("heatmaply")
+library(tinytex)
 library(tidyverse)
 library(leaflet)
 library(kableExtra)
 library(htmlwidgets)
 library(widgetframe)
+library(dplyr)
+library(tidyr)
+library(forcats)
+library(ggplot2)
+library(class)
+library(corrplot)
+library(caret)
+library(reshape2) #for melt function
+library(rmarkdown) 
+library(knitr)
+library(pROC) #for ROC Curve
+library(widgetframe)
+library(DT)
+library(heatmaply)
+library(plotly)
 knitr::opts_chunk$set(widgetframe_widgets_dir = 'widgets' ) 
 knitr::opts_chunk$set(cache=TRUE)  # cache the results for quick compiling
 ```
 
-## Download and clean all required data
+```{r include=FALSE}
+# Load renv
+library(renv)   #Please comment on the function of the tool 
 
-```{r}
-n=20
-data=data.frame(x=runif(n,-180,180),
-                y=runif(n,-60,60),
-                size = runif(n, 5, 20),
-                category = factor(
-                  sample(letters[1:5], n, replace = TRUE)
-                  ),
-                value = rnorm(n))
+# Check status
+renv::status()
+
+# Synchronize the project
+renv::snapshot()
 ```
 
+### Load and Explore Data
+
+```{r}
+diabetes_data <- read.csv("https://drive.google.com/uc?export=download&id=1eAplOYO-k7ZYHj4uHAY1tEr8VTeaxS6u")
+
+```
+
+Exploring the dataset
+
 ```{r, results='asis'}
-data %>% 
+diabetes_data%>%
   slice(1:10) %>% #show only 1:n rows
   kable(digits=2,align="c")%>% #make table and round to two digits
   kable_styling(bootstrap_options = 
-                  c("striped", "hover", "condensed", "responsive")) #apply other formatting
-```
+                  c("striped", "hover", "condensed", "responsive")) 
 
-Add any additional processing steps here.
 
-# Results
-
-\[\~200 words\]
-
-Tables and figures (maps and other graphics) are carefully planned to convey the results of your analysis. Intense exploration and evidence of many trials and failures. The author looked at the data in many different ways before coming to the final presentation of the data.
-
-Show tables, plots, etc. and describe them.
-
-```{r, fig.width=6, fig.height=3, fig.cap="Map of completely random data"}
-m <- leaflet(data) %>% 
-  addTiles() %>% 
-  addCircleMarkers(~x, ~y, radius = ~size,color = ~as.factor(category)) %>% 
-  addPopups(~x[2], ~y[2], "Random popup")
-m  # a map with the default OSM tile layer
 ```
 
 ```{r}
-data %>% 
-  ggplot(aes(x=x,y=y,col=category))+
-  geom_point()
+#Exploring the structure of the data
+str(diabetes_data)
+  
 ```
 
-### Dygraphs Example
+The dataset contains 15000 patient entries, with all features being numeric values.
+
+##### Clean Dataset
+
+```{r results='hide'}
+duplicated(diabetes_data) #check for duplicates
+sum(is.na(diabetes_data)) #to check missing values 
+
+```
+
+The dataset contains no duplicates or missing values. The next step is visual summary.
+
+### Data Visualization and Exploratory Analysis
+
+Correlation and visual summary
 
 ```{r}
-library(dygraphs)
-dygraph(nhtemp, main = "New Haven Temperatures") |> 
-  dyRangeSelector(dateWindow = c("1920-01-01", "1960-01-01")) 
+#remove patientid and outcome for better analysis 
+filtered_diabetes <- subset(diabetes_data, select = -c(PatientID,Diabetic))
+
+correlation_matrix <- cor(filtered_diabetes)
+
+# Convert correlation matrix from wide to long format for visualization
+correlation_melted <- melt(correlation_matrix)
+
+#see the outcome
+correlation_melted%>%
+  kable(digits=8,align="c")%>% #make table and round to two digits
+  kable_styling(bootstrap_options = 
+                  c("striped", "hover", "condensed", "responsive",  fixed_thead = TRUE))%>%
+  scroll_box(width = "100%", height = "400px") #scroll option long table
+
+
 ```
 
-# Conclusions
+Plot correlation heatmap
 
-\[\~200 words\]
+```{r fig.width=8, fig.height=6,fig.cap="Interactive Correlation HeatMap"}
+# Plot heatmap
+heatmaply(
+  correlation_matrix,
+  dendrogram = "none",
+  xlab = "Features",
+  ylab = "Features",
+  main = "Correlation Heatmap",
+  colors = colorRampPalette(c("red", "white", "brown"))(100),
+  limits = c(-1, 1),
+  branches_lwd = 0.1,
+  titleX = FALSE,
+  titleY = FALSE,
+        label_names = c("Variable", "Factor", "Value"),
+        fontsize_row = 10, fontsize_col = 10,
+        labCol = colnames(correlation_matrix),
+        labRow = rownames(correlation_matrix),
+        heatmap_layers = theme(axis.line = element_blank())
+)
 
-Clear summary adequately describing the results and putting them in context. Discussion of further questions and ways to continue investigation.
+```
+
+The correlation shows moderately positive correlations between the Age and Pregnancy, and the Insulin and Pregnancy. This indicates that as the age of the patients increased so did the number of pregnancies, also as the number of pregnancies, the quantity of insulin administered to the patients increased likewise.
+
+Weak or no correlations can also be observed in the following attributes of the dataset; DiabetesPedigree and Skin Thickness.
+
+##### Comparing Outcomes and Variables
+
+Age vs Outcome
+
+```{r fig.width=8, fig.height=4, fig.cap="Graph Showing Correlation of Outcome vs Age", warning=FALSE, message=FALSE}
+ggplot(data = diabetes_data, aes(x = Age)) + geom_histogram(color = "blue", fill = "lightblue") + facet_wrap(~Diabetic) + theme_dark() + ylab("Number of Patients") + labs(title = "Age(s) of Patients")
+```
+
+0 = Non-diabetic
+
+1= Diabetic
+
+The ages of the patients are skewed to the right with most of the patients being between the ages of 20 to 40.
+
+BMI vs Outcome
+
+```{r fig.width=8, fig.height=4, fig.cap="Plot Showing Correlation Between Outcome vs BMI", warning=FALSE, message=FALSE}
+ggplot(data = diabetes_data, aes(x = BMI)) + geom_histogram(color = "blue", fill = "lightblue") + facet_wrap(~Diabetic) + theme_dark() + ylab("Number of Patients") + labs(title = "BMI of Patients")
+```
+
+Blood Pressure vs Outcome
+
+```{r fig.width=8, fig.height=4, fig.cap="Violin plot Showing Correlation Between Outcome vs BloodPressure"}
+ggplot(diabetes_data, aes(x = factor(Diabetic), y = DiastolicBloodPressure, fill = factor(Diabetic))) +
+  geom_violin() +
+  geom_boxplot(width = 0.2, fill = "white", alpha = 0.5) +
+  labs(title = "Patients' Blood Pressure", x = "Diabetes Status", fill = "Diabetes Status" ) +
+  scale_fill_discrete(labels = c("Non-Diabetic", "Diabetic")) +
+  theme_minimal()
+```
+
+Visualizing the distribution of blood pressure for each outcome.
+
+### Preprocess and Train Data
+
+##### Preprocess
+
+```{r}
+# Convert the outcome variable to a factor 
+diabetes_data$Diabetic <- factor(diabetes_data$Diabetic, 
+                                levels = c(0, 1), 
+                                labels = c("Non-Diabetic", "Diabetic"))
+```
+
+```{r}
+# Split the data into training and testing sets
+set.seed(123)  # for reproducibility
+split <- createDataPartition(diabetes_data$Diabetic, p = 0.7, list = FALSE)
+train_data <- diabetes_data[split, ]
+test_data <- diabetes_data[-split, ]
+
+# Step 3: Fit the logistic regression model
+diabetes_model <- glm(Diabetic ~ Pregnancies + PlasmaGlucose + DiastolicBloodPressure + TricepsThickness + 
+                       SerumInsulin + BMI + DiabetesPedigree + Age,
+                      data = train_data, family = binomial)
+
+#  Summarize the model to see coefficients and other details
+summary(diabetes_model)
+```
+
+##### Train Model
+
+```{r message=F, warning=FALSE}
+# Generate predictions on the test set
+test_data$predicted_prob <- predict(diabetes_model, newdata = test_data, type = "response")
+test_data$predicted_class <- factor(ifelse(test_data$predicted_prob > 0.5, 
+                                         "Diabetic", "Non-Diabetic"),
+                                  levels = c("Non-Diabetic", "Diabetic"))
+
+
+# Create confusion matrix
+confusion_matrix <- confusionMatrix(data = test_data$predicted_class,
+                                  reference = test_data$Diabetic,
+                                  positive = "Diabetic")
+
+
+# Print confusion matrix and statistics
+print(confusion_matrix)
+```
+
+This confusion matrix shows:
+
+-   The model correctly predicted 873 diabetic patients.
+
+-   The model correctly predicted 2671 non-diabetic patients.
+
+-   Accuracy: Overall, the model is correct 78.76% of the time.
+
+-   Sensitivity (Recall): 58.20%. This means the model correctly identifies 58.20% of actual diabetic cases.
+
+-   Specificity: 89.03%. This means the model correctly identifies 89.03% of actual non-diabetic cases.
+
+-   Precision: 72.63%. Of those predicted as diabetic, 72.63% are actually diabetic.
+
+-   Negative Predictive Value: 80.99%. Of those predicted as non-diabetic, 80.99% are actually non-diabetic.
+
+    The "Positive' Class : Diabetic" explanation at the end means that the "Diabetic" class is considered the positive class in this analysis.
+
+#### Case Study
+
+Predicting diabetes for a new patient named Molly_Jane.
+
+```{r}
+# Define the new patient's data for prediction
+Molly_Jane <- data.frame(
+  Pregnancies = 2,
+  PlasmaGlucose = 120,
+ DiastolicBloodPressure = 70,
+  TricepsThickness = 30,
+  SerumInsulin = 85,
+  BMI = 28.5,
+  DiabetesPedigree = 0.627,
+  Age = 45
+)
+
+# Use the model to predict the probability for the new patient
+prediction_prob <- predict(diabetes_model, newdata = Molly_Jane, type = "response")
+
+# Convert probability to class prediction with explicit labeling
+prediction_class <- ifelse(prediction_prob > 0.5, "Diabetic", "Non-Diabetic")
+
+# Print the results with formatted probability and text label
+cat("Predicted probability of diabetes:", round(prediction_prob, 3), "\n")#rounded to 3 decimal points
+cat("Predicted class for the new patient:", prediction_class)
+
+
+```
+
+With a probability of 39.1 %, Molly_Jane is classified as Non-Diabetic. A probability higher than 0.5 means the patient might be diabetic.
+
+### ROC Curve
+
+```{r fig.width=8, fig.height=4, fig.cap="Model's ROC Curve", echo=FALSE, message=FALSE}
+roc_curve <- roc(test_data$Diabetic, test_data$predicted_prob, levels = c("Non-Diabetic", "Diabetic"))
+
+# Create interactive ROC plot
+plot_ly(
+  x = 1 - roc_curve$specificities,  # Note: x-axis is 1 - specificity 
+  y = roc_curve$sensitivities, 
+  type = 'scatter', 
+  mode = 'lines',
+  line = list(color = "blue"),
+  name = "ROC Curve"
+) %>%
+  add_trace(
+    x = c(0,1),
+    y = c(0,1),
+    type = 'scatter',
+    mode = 'lines',
+    line = list(color = "red", dash = 'dash'),
+    name = "Random Classifier"
+  ) %>%
+  layout(
+    title = list(
+      text = paste("Interactive ROC Curve for Diabetes Prediction (AUC =", round(auc(roc_curve), 3), ")"),
+      x = 0.5,
+      y = 0.95
+    ),
+    xaxis = list(
+      title = "False Positive Rate (1 - Specificity)",
+      zeroline = FALSE,
+      gridcolor = 'rgb(240,240,240)'
+    ),
+    yaxis = list(
+      title = "True Positive Rate (Sensitivity)",
+      zeroline = FALSE,
+      gridcolor = 'rgb(240,240,240)'
+    ),
+    shapes = list(
+      type = 'line',
+      x0 = 0,
+      x1 = 1,
+      y0 = 0,
+      y1 = 1,
+      line = list(
+        dash = 'dot',
+        width = 1,
+        color = 'gray'
+      )
+    ),
+    plot_bgcolor = 'rgb(255,255,255)',
+    showlegend = TRUE,
+    legend = list(x = 0.8, y = 0.2)
+  )
+```
+#Please how different is the predictive model using machine learning vs my own model
+
+The Receiver's Operating Characteristic (ROC) shows the overall performance of the model is good. With an AUC (Area Under the Curve) of about 0.8 or higher, the model will be about 80% of the time accurate in predicting if a patient is diabetic or non-diabetic.
+
+### Conclusions
+
+Diabetes is a serious chronic disease. Early diagnosis is crucial for effective management. This project used logistic regression to predict diabetes onset using eight key medical parameters which includes Age, Blood pressure, Insulin, BMI, Triceps thickness, number of pregnancies, Diabetes pedigree and glucose level.
+
+After training and evaluation, the model achieved impressive results, with AUC score of 0.8. This shows the potential of machine learning to improve diabetes prediction. Using models like this to predict diabetes for new patients and existing patients can help increase early and effective diagnosis. It would also go a long way to encourage effective management.
 
 # References
 
-All sources are cited in a consistent manner
+Chou C-Y, Hsu D-Y, Chou C-H. Predicting the Onset of Diabetes with Machine Learning Methods. *Journal of Personalized Medicine*. 2023; 13(3):406. https://doi.org/10.3390/jpm13030406
+
+Geeks for Geeks Prediction Using R Course: <https://www.geeksforgeeks.org/diabetes-prediction-using-r/>
+
+Pranto B, Mehnaz S, Mahid EB et al. Evaluating machine learning methods for predicting diabetes among female patients in bangladesh. *Information* 2020; 11: 374.
+
+Talukder MdA, Islam MdM, Uddin MA, et al. Toward reliable diabetes prediction: Innovations in data engineering and machine learning applications. DIGITAL HEALTH. 2024;10. doi:10.1177/20552076241271867
+
+Tamunoye Darego (2022) Diabetes Prediction using kNN in R
+
+World Health Organization (2023): <https://www.who.int/news-room/fact-sheets/detail/diabetes>
+
+Xavier Robin, Natacha Turck, Alexandre Hainard, Natalia Tiberti, Frédérique Lisacek, Jean-Charles Sanchez and Markus Müller (2011). “pROC: an open-source package for R and S+ to analyze and compare ROC curves”. *BMC Bioinformatics*, **12**, p. 77. DOI: doi: [10.1186/1471-2105-12-77](https://doi.org/10.1186/1471-2105-12-77)
