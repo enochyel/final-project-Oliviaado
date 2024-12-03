@@ -1,120 +1,177 @@
 ---
-title: "My Final Project Template"
-author: Your name here
+title: "Land Cover Change Detection in Twin Cities Metro Area, Minnesota"
+author: Olivia Adomabea
 subtitle: Subtitle here if desired
-date: today
+date: 12/02/2024
 date-format: long
 ---
 
 # Introduction
-
-\[\~ 200 words\]
-
-Clearly stated background and questions / hypotheses / problems being addressed. Sets up the analysis in an interesting and compelling way. Include figures if you like.
+This project seeks to detect land cover changes in southern Minnesota. 
+Understanding the dynamics of environmental transformations caused by natural processes and human activities requires detecting land cover change. Accurate detection helps inform sustainable land-use policies and mitigate environmental impacts, such as biodiversity decline and climate change. Land cover change detection is a critical tool for understanding the complex dynamics of land use and its impacts on the environment, society, and economy. As human activities, such as urban expansion, agricultural intensification, and deforestation, continue to alter the landscape, it becomes increasingly important to monitor and assess these changes over time. studying land cover changes is vital for understanding environmental, social, and economic systems. It informs policies, promotes sustainable development, enhances disaster resilience, and helps manage natural resources more effectively.This study attempt to answer the principal questions:
+-What are the land cover change patterns that have occurred in Southern Minnesota from 2000 to 2020?
+-What factors are causing these changes if there has been any change detection?
 
 # Materials and methods
-
-\[\~ 200 words\]
-
-Narrative: Clear narrative description of the data sources and methods. Includes data from at least two sources that were integrated / merged in R.
+The data source and data processing and analyzing method are noted in the code chunk in r. 
+Packages installed/loaded: #Please comment on the packages, particularly in relation in your project
+-tidyverse
+-terra
+-RColorBrewer
+-tmap
+Data Source:
+-Landsat 8 (path 28. row 29)
+-copied path of downloaded data.
 
 Code: The code associated with the project is well organized and easy to follow. Demonstrates mastery of R graphics and functions.
 
-Data: The underlying data are publicly accessible via the web and downloaded/accessed within the Rmd script. If you want to use your own data, you must make it available on a website (e.g. Figshare) so that others are able to re-run your code.
-
-You can do bullets like this:
-
--   The first most important thing
--   The second most important thing
--   The third most important thing
-
-You can do numbers like this:
-
-1.  The first most important thing
-2.  The second most important thing
-3.  The third most important thing
-
-See <http://rmarkdown.rstudio.com/> for all the amazing things you can do.
-
-Here's my first code chunk.
+Data: The underlying data are publicly accessible via the web and downloaded/accessed within the Rmd script. 
+---
 
 ```{r}
-x=3+4
-```
-
-Refer to output in your narrative like this: x=`r x` .
-
-Load any required packages in a code chunk (you may need to install some packages):
-
-```{r, message=F, warning=F}
+# load packages
+# install.packages("terra")
+library(terra)
 library(tidyverse)
-library(leaflet)
-library(kableExtra)
-library(htmlwidgets)
-library(widgetframe)
-knitr::opts_chunk$set(widgetframe_widgets_dir = 'widgets' ) 
-knitr::opts_chunk$set(cache=TRUE)  # cache the results for quick compiling
+library(RColorBrewer)
 ```
-
-## Download and clean all required data
-
 ```{r}
-n=20
-data=data.frame(x=runif(n,-180,180),
-                y=runif(n,-60,60),
-                size = runif(n, 5, 20),
-                category = factor(
-                  sample(letters[1:5], n, replace = TRUE)
-                  ),
-                value = rnorm(n))
-```
+# load raster file
+landcover_path_2000 <- "/Users/oliviaadomabea/Documents/Spatial_Data_Analysis_Respo/case-studies-Oliviaado/Final Project/Minnesota/Annual_NLCD_H18V05_LndCov_2000_CU_C1V0.tif"
 
-```{r, results='asis'}
-data %>% 
-  slice(1:10) %>% #show only 1:n rows
-  kable(digits=2,align="c")%>% #make table and round to two digits
-  kable_styling(bootstrap_options = 
-                  c("striped", "hover", "condensed", "responsive")) #apply other formatting
-```
+landcover_path_2020 <- "/Users/oliviaadomabea/Documents/Spatial_Data_Analysis_Respo/case-studies-Oliviaado/Final Project/Minnesota/Annual_NLCD_H18V05_LndCov_2020_CU_C1V0.tif"
 
-Add any additional processing steps here.
-
-# Results
-
-\[\~200 words\]
-
-Tables and figures (maps and other graphics) are carefully planned to convey the results of your analysis. Intense exploration and evidence of many trials and failures. The author looked at the data in many different ways before coming to the final presentation of the data.
-
-Show tables, plots, etc. and describe them.
-
-```{r, fig.width=6, fig.height=3, fig.cap="Map of completely random data"}
-m <- leaflet(data) %>% 
-  addTiles() %>% 
-  addCircleMarkers(~x, ~y, radius = ~size,color = ~as.factor(category)) %>% 
-  addPopups(~x[2], ~y[2], "Random popup")
-m  # a map with the default OSM tile layer
+landcover_2000 <- rast(landcover_path_2000)
+landcover_2020 <- rast(landcover_path_2020)
+print(landcover_2000)
+print(landcover_2020)
 ```
 
 ```{r}
-data %>% 
-  ggplot(aes(x=x,y=y,col=category))+
-  geom_point()
+# explore raster file
+landcover_cat_2000 <- unique(values(landcover_2000))
+landcover_cat_2020 <- unique(values(landcover_2020))
+print(landcover_cat_2000)
+print(landcover_cat_2020)
 ```
-
-### Dygraphs Example
 
 ```{r}
-library(dygraphs)
-dygraph(nhtemp, main = "New Haven Temperatures") |> 
-  dyRangeSelector(dateWindow = c("1920-01-01", "1960-01-01")) 
+# count pixels per landcover category
+landcover_2000_pc <- freq(landcover_2000, digits = 0)
+print(landcover_2000_pc)
+landcover_2020_pc <- freq(landcover_2020, digits = 0)
+print(landcover_2020_pc)
 ```
+
+```{r}
+# for 2000
+# convert pixel counts to a df
+landcover_2000_pc <- as.data.frame(landcover_2000_pc[, c(2,3)])
+colnames(landcover_2000_pc) <- c("Landcover_Class", "Pixel_Count_2000")
+print(landcover_2000_pc)
+
+# adding proportion to the df
+total_pixels <- sum(landcover_2000_pc$Pixel_Count_2000)
+landcover_2000_pc$Percentage_2000 <- (landcover_2000_pc$Pixel_Count_2000 / total_pixels) * 100
+```
+```{r}
+# for 2020
+# convert pixel counts to a df
+landcover_2020_pc <- as.data.frame(landcover_2020_pc[, c(2,3)])
+colnames(landcover_2020_pc) <- c("Landcover_Class", "Pixel_Count_2020")
+print(landcover_2020_pc)
+
+# adding proportion to the df
+total_pixels <- sum(landcover_2020_pc$Pixel_Count_2020)
+landcover_2020_pc$Percentage_2020 <- (landcover_2020_pc$Pixel_Count_2020 / total_pixels) * 100
+```{r}
+library(tidyverse)
+lc_2000_2020 <- left_join(landcover_2000_pc, landcover_2020_pc, by = "Landcover_Class")
+lc_2000_2020 <- lc_2000_2020 %>%
+  mutate(land_cover_class = case_when(
+    Landcover_Class == 11 ~ "open water",
+    Landcover_Class == 21 ~ "developed area",
+    Landcover_Class == 22 ~ "developed area",
+    Landcover_Class == 23 ~ "developed area",
+    Landcover_Class == 24 ~ "developed area",
+    Landcover_Class == 31 ~ "barren land",
+    Landcover_Class == 41 ~ "forest",
+    Landcover_Class == 42 ~ "forest",
+    Landcover_Class == 43 ~ "forest",
+    Landcover_Class == 52 ~ "grassland",
+    Landcover_Class == 71 ~ "grassland",
+    Landcover_Class == 81 ~ "grassland",
+    Landcover_Class == 82 ~ "cultivated crops",
+    Landcover_Class == 90 ~ "wetlands",
+    Landcover_Class == 95 ~ "wetlands"
+  ))
+#is there a way you could reclassify this using r
+lc_2000_2020 <- lc_2000_2020[, c(2:6)]
+lc_2000_2020 <- lc_2000_2020 %>% group_by(land_cover_class) %>%
+  summarise(across(everything(), sum, na.rm = TRUE))
+```
+```{r}
+# some exploratory data analysis
+# 1. group bar plot
+data <- lc_2000_2020 %>% 
+  pivot_longer(cols = c(Percentage_2000, Percentage_2020), 
+               names_to = "Year", values_to = "Value")
+
+ggplot(data, aes(x = land_cover_class, y = Value, fill = Year)) +
+  geom_bar(stat = "identity", position = position_dodge()) +
+  labs(title = "Landcover Comparison by Year",
+       x = "Land Cover",
+       y = "Percent Coverage") +
+  theme_minimal() + scale_fill_brewer(palette = "Set1") +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+```
+
+```{r}
+# 2. visualizing the raster file spatially
+n_classes <- length(lc_2000_2020$land_cover_class)
+palette <- brewer.pal(n = n_classes, name = "Set3")
+# 
+# plot(landcover_2000, col = palette, legend = TRUE,
+#      main = "Spatial Distribution of Landcover Categories\n of Southwestern Minnesota in 2000")
+
+library(tmap)
+tmap_mode("view")
+tm_shape(landcover_2000) + tm_raster(title = "Landcover_Classes") + 
+  tm_layout(title = "Spatial Distribution of Landcover Categories\n of Southwestern Minnesota in 2000", legend.outside = TRUE)
+
+```
+```{r}
+# plot(landcover_2020, col = palette, legend = TRUE,
+#      main = "Spatial Distribution of Landcover Categories\n of Southwestern Minnesota in 2020")
+
+library(tmap)
+tmap_mode("view")
+tm_shape(landcover_2020) + tm_raster(title = "Landcover_Classes") + 
+  tm_layout(title = "Spatial Distribution of Landcover Categories\n of Southwestern Minnesota in 2020", legend.outside = TRUE)
+
+```{r}
+# preprocessing for change detection
+landcover_2020 <- resample(landcover_2020, landcover_2000, method = "near")
+
+# calculating change
+change <- landcover_2020 - landcover_2000
+```
+```{r}
+change[change == 0] <- NA
+custom_colors <- c("white", "green", "blue", "yellow", "red", "purple")
+
+# visualize change
+tmap_mode("view")
+tm_shape(change) + tm_raster(title = "Change") + tm_layout("Interactive Change Map")
+
+# plot(change, col = custom_colors[-1], legend = TRUE,
+#      main = "Landcover Changes (2000 - 2020)")
 
 # Conclusions
-
-\[\~200 words\]
+In conclusion, detecting land cover changes is essential for comprehensively understanding the impacts of human activities and natural processes on the environment. Through advanced remote sensing technologies and data analysis techniques like R, lannd cover changes are effectively monitor and quantify shifts in land cover over time, providing valuable insights into urbanization, deforestation, agricultural expansion, and climate change. This information is critical for informed decision-making, allowing for the development of sustainable land use policies and effective conservation strategies. As global challenges such as biodiversity loss, climate change, and resource depletion intensify, continuous monitoring and detection of land cover changes will be pivotal in ensuring a balance between human development and environmental preservation, ultimately fostering a more resilient and sustainable future for the planet.
 
 Clear summary adequately describing the results and putting them in context. Discussion of further questions and ways to continue investigation.
-
+From the analysis of the results, it was found that there has been a change detection in almost all the seven(7) landcovers. The developed area/built environment experienced a significant level of incremental changes. From 2000 to 2020, developed areas grew from 16.2% to 19.2% whereas there was a significant decrease in croplands from 29.2% to 26.9%. All the other landcovers(wetland, grasslands, and barren lands increased at 16.6%-16.7%, 14.1%-14.6,0.1%-0.2% respectively while open waters and forest decreased from 4.3%-4.1%, 18.7%-18.4% respectively. These findings indicate that vegetative covers are been lost to the built environment. In future, I will want to study land surface temperature to investigate if loss of vegetative covers give rise to urban heat island.
 # References
 
 All sources are cited in a consistent manner
